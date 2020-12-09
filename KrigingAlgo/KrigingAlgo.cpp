@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <direct.h>
+using namespace System::Runtime::InteropServices;
 
 // Various helper routines for debugging
 
@@ -180,17 +181,17 @@ public:
 
 // Simple Raster class
 
-class RasterContext
+class _RasterContext
 {
 public:
 
 	// Constructor
 
-	RasterContext::RasterContext()
+	_RasterContext::_RasterContext()
 	{
 	}
 
-	RasterContext(double xOffsetSource, double yOffsetSource,
+	_RasterContext(double xOffsetSource, double yOffsetSource,
 		double xScaleSource, double yScaleSource,
 		unsigned int widthSource, unsigned int heightSource, bool yFlippedSource = true) : xOffset(xOffsetSource), yOffset(yOffsetSource),
 		xScale(xScaleSource), yScale(yScaleSource),
@@ -200,20 +201,20 @@ public:
 
 	// Copy constructor
 
-	RasterContext(const RasterContext& sourceRasterContext)
+	_RasterContext(const _RasterContext& sourceRasterContext)
 	{
 		*this = sourceRasterContext;
 	}
 
 	// Destructor
 
-	~RasterContext()
+	~_RasterContext()
 	{
 	}
 
 	// Assignment operator
 
-	RasterContext& operator=(const RasterContext& sourceRasterContext)
+	_RasterContext& operator=(const _RasterContext& sourceRasterContext)
 	{
 		if (this != &sourceRasterContext)
 		{
@@ -575,13 +576,13 @@ std::vector<double> LUDecomposition::Solve(const std::vector<double>& b)
 
 // Simple and Ordinary Kriging
 
-class Kriging
+class _Kriging
 {
 public:
 
 	// Data model
 
-	enum Model
+	enum _Model
 	{
 		Linear,
 		LinearWithoutIntercept,
@@ -592,11 +593,11 @@ public:
 
 	// Constructor
 
-	Kriging(std::vector<DataPoint>& dataPoint, RasterContext& rasterContext);
+	_Kriging(std::vector<DataPoint>& dataPoint, _RasterContext& rasterContext);
 
 	// Destructor
 
-	~Kriging();
+	~_Kriging();
 
 	// Load the input data
 
@@ -662,14 +663,17 @@ public:
 
 	// Simple Kriging
 
-	void SimpleKrige(Model model, double nugget, double sill, double range);
+	void SimpleKrige(_Model model, double nugget, double sill, double range);
+	void SimpleKrige(_Model model,void* buffer, double nugget, double sill, double range);
 
 	// Ordinary Kriging
 
-	void OrdinaryKrige(Model model, double nugget, double sill, double range,
+	void OrdinaryKrige(_Model model, double nugget, double sill, double range,
+		unsigned int minPoints, unsigned int maxPoints, double maxDistance);
+	void OrdinaryKrige(_Model model, void* buffer, double nugget, double sill, double range,
 		unsigned int minPoints, unsigned int maxPoints, double maxDistance);
 
-protected:
+public:
 
 	// Fill a map of all distances with semivariogram
 
@@ -678,22 +682,22 @@ protected:
 	// Fill a matrix of variograms over all point distances
 
 	std::vector<std::vector<double>> CalculateVariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
-		Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
+		_Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
 
 	// Fill a matrix of covariograms over all point distances
 
 	std::vector<std::vector<double>> CalculateCovariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
-		Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
+		_Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
 
 	// Fill a vector of variograms over all distances from a given point
 
 	std::vector<double> CalculateVariogramVector(const std::vector<DataPoint>& dataPointCandidate,
-		double xCoordinate, double yCoordinate, Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
+		double xCoordinate, double yCoordinate, _Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
 
 	// Fill a vector of covariograms over all distances from a given point
 
 	std::vector<double> CalculateCovariogramVector(const std::vector<DataPoint>& dataPointCandidate,
-		double xCoordinate, double yCoordinate, Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
+		double xCoordinate, double yCoordinate, _Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const;
 
 	// Fill a map of distances from a fixed point with model variogram
 
@@ -709,11 +713,11 @@ protected:
 
 	// Calculate the variogram
 
-	double CalculateVariogram(Model model, double distance, double nugget, double sill, double range) const;
+	double CalculateVariogram(_Model model, double distance, double nugget, double sill, double range) const;
 
 	// Calculate the covariogram
 
-	double CalculateCovariogram(Model model, double distance, double nugget, double sill, double range) const;
+	double CalculateCovariogram(_Model model, double distance, double nugget, double sill, double range) const;
 
 	// Simple linear regression
 
@@ -723,13 +727,13 @@ protected:
 	// Simple Kringing for an individual point
 
 	double SimpleKrigeForPoint(double xCoordinate, double yCoordinate,
-		Model model, double nugget, double sill, double range,
+		_Model model, double nugget, double sill, double range,
 		CholeskyDecomposition& cholesky, std::vector<double>& residuals, double estimatedMean);
 
 	// Ordinary Kringing for an individual point
 
 	double OrdinaryKrigeForPoint(double xCoordinate, double yCoordinate,
-		Model model, double nugget, double sill, double range,
+		_Model model, double nugget, double sill, double range,
 		LUDecomposition& luDecomposition, const std::vector<DataPoint>& dataPointCandidate);
 
 	double estimatedNugget = 0.0;
@@ -747,19 +751,19 @@ protected:
 	std::vector<double> lagSemivariance;
 	std::vector<unsigned int> lagCount;
 
-	RasterContext rasterContext;
+	_RasterContext rasterContext;
 };
 
 // Constructor
 
-Kriging::Kriging(std::vector<DataPoint>& sourceDataPoint, RasterContext& rasterContext) : rasterContext(rasterContext)
+_Kriging::_Kriging(std::vector<DataPoint>& sourceDataPoint, _RasterContext& rasterContext) : rasterContext(rasterContext)
 {
 	dataPoint.swap(sourceDataPoint);
 }
 
 // Intialize internals
 
-void Kriging::Initialize()
+void _Kriging::Initialize()
 {
 	CalculateDistanceMap();
 	CalculateDefaultLagParameters();
@@ -769,13 +773,13 @@ void Kriging::Initialize()
 
 // Destructor
 
-Kriging::~Kriging()
+_Kriging::~_Kriging()
 {
 }
 
 // Simple Kriging
 
-void Kriging::SimpleKrige(Model model, double nugget, double sill, double range)
+void _Kriging::SimpleKrige(_Model model, double nugget, double sill, double range)
 {
 #if 0
 
@@ -882,9 +886,66 @@ void Kriging::SimpleKrige(Model model, double nugget, double sill, double range)
 #endif
 }
 
+void _Kriging::SimpleKrige(_Model model, void* buf, double nugget, double sill, double range)
+{
+	float* buffer = static_cast<float*>(buf);
+	// Find distances between all points and calculate covariograms
+
+	std::vector<std::vector<double>> distanceCovariogramMatrix = CalculateCovariogramMatrix(dataPoint, model, nugget, sill, range, false);
+
+	// Decompose the covariogram matrix 
+
+	CholeskyDecomposition choleskyDecomposition(distanceCovariogramMatrix);
+
+	choleskyDecomposition.Decompose();
+
+	// Estimate mean and calculate residuals
+
+	double estimatedMean = std::accumulate(dataPoint.begin(), dataPoint.end(), 0.0, [](double sum, const DataPoint& dataPoint) { return sum + dataPoint.value; }) / dataPoint.size();
+
+	std::vector<double> residuals(dataPoint.size());
+
+	std::transform(dataPoint.begin(), dataPoint.end(), residuals.begin(), [&](const DataPoint& current) { return current.value - estimatedMean; });
+
+	double estimatedZ = 0.0;
+
+	// For now, output to standard out to plot in Excel.  Later we will just assign the kriged estimate to the data grid.
+
+	// Y scale across row 1
+
+	//for (unsigned int j = 0; j < rasterContext.height; j++)
+	//{
+	//	std::cout << ", " << rasterContext.XYtoPoint(0, j).y;
+	//}
+
+	//std::cout << std::endl;
+
+	for (unsigned int i = 0; i < rasterContext.width; i++)
+	{
+		// X scale down column 1
+
+		//std::cout << rasterContext.XYtoPoint(i, 0).x;
+
+		for (unsigned int j = 0; j < rasterContext.height; j++)
+		{
+			// The kriged estimate
+			//估计
+			Point point = rasterContext.XYtoPoint(i, j);
+
+			estimatedZ = SimpleKrigeForPoint(point.x, point.y, model, nugget, sill, range, choleskyDecomposition, residuals, estimatedMean);
+			buffer[j * rasterContext.width + i] = estimatedZ;
+			//std::cout << ", " << estimatedZ;
+		}
+
+		//std::cout << std::endl;
+	}
+
+	return;
+}
+
 // Ordinary Kriging
 
-void Kriging::OrdinaryKrige(Model model, double nugget, double sill, double range,
+void _Kriging::OrdinaryKrige(_Model model, double nugget, double sill, double range,
 	unsigned int minPoints, unsigned int maxPoints, double maxDistance)
 {
 #if 0
@@ -1003,10 +1064,87 @@ void Kriging::OrdinaryKrige(Model model, double nugget, double sill, double rang
 #endif
 }
 
+void _Kriging::OrdinaryKrige(_Model model, void* buf, double nugget, double sill, double range, unsigned int minPoints, unsigned int maxPoints, double maxDistance)
+{
+	float* buffer = static_cast<float*>(buf);
+	// For now, output to standard out to plot in Excel.  Later will be just assign the kriged estimate to the data grid.
+
+	// Y scale across row 1
+
+	//for (unsigned int j = 0; j < rasterContext.height; j++)
+	//{
+	//	std::cout << ", " << rasterContext.XYtoPoint(0, j).y;
+	//}
+
+	//std::cout << std::endl;
+
+	std::vector<DataPoint> dataPointCandidate(maxPoints);
+
+	if (maxDistance == 0.0)
+	{
+		maxDistance = std::numeric_limits<double>().max();
+	}
+
+	for (unsigned int i = 0; i < rasterContext.width; i++)
+	{
+		// X scale down column 1
+
+		//std::cout << rasterContext.XYtoPoint(i, 0).x;
+
+		for (unsigned int j = 0; j < rasterContext.height; j++)
+		{
+			// Current x, y values
+
+			Point point = rasterContext.XYtoPoint(i, j);
+
+			// Find our candidate points.
+
+			std::multimap<double, size_t> candidateDistanceMap = CalculateDistanceMapForPoint(point.x, point.y, maxPoints, maxDistance);
+
+			double estimatedZ = 0.0;
+
+			if (candidateDistanceMap.size() == minPoints)
+			{
+				dataPointCandidate.resize(candidateDistanceMap.size());
+
+				size_t index = 0;
+
+				for (std::multimap<double, size_t>::const_iterator iterator = candidateDistanceMap.begin();
+					iterator != candidateDistanceMap.end();
+					iterator++)
+				{
+					dataPointCandidate[index] = this->dataPoint[iterator->second];
+
+					index++;
+				}
+
+				// Find distances between all points and calculate covariograms
+
+				std::vector<std::vector<double>> distanceCovariogramMatrix = CalculateCovariogramMatrix(dataPointCandidate, model, nugget, sill, range, true);
+
+				// Decompose the covariogram matrix.  Because of the Lagrange multiplier, this will not be a positive definite matrix and we will
+				// need to use LU decomposition.
+
+				LUDecomposition luDecomposition(distanceCovariogramMatrix);
+
+				luDecomposition.Decompose();
+
+				estimatedZ = OrdinaryKrigeForPoint(point.x, point.y, model, nugget, sill, range, luDecomposition, dataPointCandidate);
+			}
+			buffer[j * rasterContext.width + i] = estimatedZ;
+			//std::cout << ", " << estimatedZ;
+		}
+
+		//std::cout << std::endl;
+	}
+
+	return;
+}
+
 // Simple Kringing for an individual point
 
-double Kriging::SimpleKrigeForPoint(double xCoordinate, double yCoordinate,
-	Model model, double nugget, double sill, double range,
+double _Kriging::SimpleKrigeForPoint(double xCoordinate, double yCoordinate,
+	_Model model, double nugget, double sill, double range,
 	CholeskyDecomposition& choleskyDecomposition, std::vector<double>& residuals, double estimatedMean)
 {
 	// Find distances over given points and calculate covariograms
@@ -1025,8 +1163,8 @@ double Kriging::SimpleKrigeForPoint(double xCoordinate, double yCoordinate,
 
 // Ordinary Kringing for an individual point
 
-double Kriging::OrdinaryKrigeForPoint(double xCoordinate, double yCoordinate,
-	Model model, double nugget, double sill, double range,
+double _Kriging::OrdinaryKrigeForPoint(double xCoordinate, double yCoordinate,
+	_Model model, double nugget, double sill, double range,
 	LUDecomposition& luDecomposition, const std::vector<DataPoint>& dataPointCandidate)
 {
 	// Find distances over given points and calculate covariograms
@@ -1045,7 +1183,7 @@ double Kriging::OrdinaryKrigeForPoint(double xCoordinate, double yCoordinate,
 
 // Fill a map of distances from a fixed point with variogram
 
-std::multimap<double, size_t> Kriging::CalculateDistanceMapForPoint(double pointX, double pointY, unsigned int maxPoints, double maxDistance) const
+std::multimap<double, size_t> _Kriging::CalculateDistanceMapForPoint(double pointX, double pointY, unsigned int maxPoints, double maxDistance) const
 {
 	std::multimap<double, size_t> pointDistanceMap;
 
@@ -1078,8 +1216,8 @@ std::multimap<double, size_t> Kriging::CalculateDistanceMapForPoint(double point
 
 // Fill a vector of variograms over all distances from a given point
 
-std::vector<double> Kriging::CalculateVariogramVector(const std::vector<DataPoint>& dataPointCandidate,
-	double xCoordinate, double yCoordinate, Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
+std::vector<double> _Kriging::CalculateVariogramVector(const std::vector<DataPoint>& dataPointCandidate,
+	double xCoordinate, double yCoordinate, _Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
 {
 	std::vector<double> distanceVector(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), LagrangeMultiplier ? 1.0 : 0.0);
 
@@ -1100,8 +1238,8 @@ std::vector<double> Kriging::CalculateVariogramVector(const std::vector<DataPoin
 
 // Fill a vector of covariograms over all distances from a given point
 
-std::vector<double> Kriging::CalculateCovariogramVector(const std::vector<DataPoint>& dataPointCandidate,
-	double xCoordinate, double yCoordinate, Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
+std::vector<double> _Kriging::CalculateCovariogramVector(const std::vector<DataPoint>& dataPointCandidate,
+	double xCoordinate, double yCoordinate, _Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
 {
 	std::vector<double> distanceVector(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), LagrangeMultiplier ? 1.0 : 0.0);
 
@@ -1122,8 +1260,8 @@ std::vector<double> Kriging::CalculateCovariogramVector(const std::vector<DataPo
 
 // Fill a matrix of variograms over all point distances
 
-std::vector<std::vector<double>> Kriging::CalculateVariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
-	Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
+std::vector<std::vector<double>> _Kriging::CalculateVariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
+	_Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
 {
 	std::vector<std::vector<double>> distanceMatrix(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), std::vector<double>(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), LagrangeMultiplier ? 1.0 : 0.0));
 
@@ -1155,8 +1293,8 @@ std::vector<std::vector<double>> Kriging::CalculateVariogramMatrix(const std::ve
 
 // Fill a matrix of covariograms over all point distances
 
-std::vector<std::vector<double>> Kriging::CalculateCovariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
-	Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
+std::vector<std::vector<double>> _Kriging::CalculateCovariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
+	_Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
 {
 	std::vector<std::vector<double>> distanceMatrix(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), std::vector<double>(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), LagrangeMultiplier ? 1.0 : 0.0));
 
@@ -1188,7 +1326,7 @@ std::vector<std::vector<double>> Kriging::CalculateCovariogramMatrix(const std::
 
 // Fill a map of all distances with semivariogram
 
-void Kriging::CalculateDistanceMap()
+void _Kriging::CalculateDistanceMap()
 {
 	// Rather than take the simple variance of the variable, a better estimation should be the
 	// average variance amoung all distances.
@@ -1214,7 +1352,7 @@ void Kriging::CalculateDistanceMap()
 
 // Find the appropriate lag parameters
 
-void Kriging::CalculateDefaultLagParameters()
+void _Kriging::CalculateDefaultLagParameters()
 {
 	// This algorithm seems to come up with reasonable lag parameters.
 
@@ -1238,7 +1376,7 @@ void Kriging::CalculateDefaultLagParameters()
 
 // Find the estimated variogram parameters
 
-void Kriging::CalculateEstimatedVariogramParameters()
+void _Kriging::CalculateEstimatedVariogramParameters()
 {
 	// Note: Determination of sill and range are only rough estimates.
 	//       It is up to the user to interpret the empirical and model
@@ -1294,7 +1432,7 @@ void Kriging::CalculateEstimatedVariogramParameters()
 
 // Simple linear regression
 
-void Kriging::DoSimpleLinearRegression(const std::vector<double>& X, const std::vector<double>& Y, double* slope, double* intercept) const
+void _Kriging::DoSimpleLinearRegression(const std::vector<double>& X, const std::vector<double>& Y, double* slope, double* intercept) const
 {
 	double Xmean = std::accumulate(X.begin(), X.end(), 0.0) / X.size();
 	double Ymean = std::accumulate(Y.begin(), Y.end(), 0.0) / Y.size();
@@ -1318,7 +1456,7 @@ void Kriging::DoSimpleLinearRegression(const std::vector<double>& X, const std::
 	*intercept = Ymean - (*slope * Xmean);
 }
 
-void Kriging::DoSimpleLinearRegressionWithoutIntercept(const std::vector<double>& X, const std::vector<double>& Y, double* slope, double intercept) const
+void _Kriging::DoSimpleLinearRegressionWithoutIntercept(const std::vector<double>& X, const std::vector<double>& Y, double* slope, double intercept) const
 {
 	double Xmean = std::accumulate(X.begin(), X.end(), 0.0) / X.size();
 	double Ymean = std::accumulate(Y.begin(), Y.end(), 0.0) / Y.size();
@@ -1343,7 +1481,7 @@ void Kriging::DoSimpleLinearRegressionWithoutIntercept(const std::vector<double>
 
 // Calculate the semivariances
 
-void Kriging::CalculateExperimentalVariogram(double lag, double lagTolerance)
+void _Kriging::CalculateExperimentalVariogram(double lag, double lagTolerance)
 {
 	// Clear containers from any previous calculations
 
@@ -1388,7 +1526,7 @@ void Kriging::CalculateExperimentalVariogram(double lag, double lagTolerance)
 
 // Calculate the variogram
 
-double Kriging::CalculateVariogram(Model model, double distance, double nugget, double sill, double range) const
+double _Kriging::CalculateVariogram(_Model model, double distance, double nugget, double sill, double range) const
 {
 	// Notes
 	//
@@ -1450,7 +1588,7 @@ double Kriging::CalculateVariogram(Model model, double distance, double nugget, 
 
 // Calculate the covariogram
 
-double Kriging::CalculateCovariogram(Model model, double distance, double nugget, double sill, double range) const
+double _Kriging::CalculateCovariogram(_Model model, double distance, double nugget, double sill, double range) const
 {
 	// Notes
 	//
@@ -1508,7 +1646,7 @@ double Kriging::CalculateCovariogram(Model model, double distance, double nugget
 
 // Calculate models
 
-std::vector<double> Kriging::CalculateLinearModel() const
+std::vector<double> _Kriging::CalculateLinearModel() const
 {
 	std::vector<double> variogram;
 
@@ -1529,7 +1667,7 @@ std::vector<double> Kriging::CalculateLinearModel() const
 	return variogram;
 }
 
-std::vector<double> Kriging::CalculateLinearModelWithoutIntercept(double nugget) const
+std::vector<double> _Kriging::CalculateLinearModelWithoutIntercept(double nugget) const
 {
 	std::vector<double> variogram;
 
@@ -1549,7 +1687,7 @@ std::vector<double> Kriging::CalculateLinearModelWithoutIntercept(double nugget)
 	return variogram;
 }
 
-std::vector<double> Kriging::CalculateSphericalModel(double nugget, double sill, double range) const
+std::vector<double> _Kriging::CalculateSphericalModel(double nugget, double sill, double range) const
 {
 	std::vector<double> variogram;
 
@@ -1563,7 +1701,7 @@ std::vector<double> Kriging::CalculateSphericalModel(double nugget, double sill,
 	return variogram;
 }
 
-std::vector<double> Kriging::CalculateExponentialModel(double nugget, double sill, double range) const
+std::vector<double> _Kriging::CalculateExponentialModel(double nugget, double sill, double range) const
 {
 	std::vector<double> variogram;
 
@@ -1577,7 +1715,7 @@ std::vector<double> Kriging::CalculateExponentialModel(double nugget, double sil
 	return variogram;
 }
 
-std::vector<double> Kriging::CalculateGaussianModel(double nugget, double sill, double range) const
+std::vector<double> _Kriging::CalculateGaussianModel(double nugget, double sill, double range) const
 {
 	std::vector<double> variogram;
 
@@ -1650,9 +1788,9 @@ bool KrigeZoneAData()
 
 	if (result)
 	{
-		RasterContext rasterContext(0, 0, 100, 100, 200, 160, false);
+		_RasterContext rasterContext(0, 0, 100, 100, 200, 160, false);
 
-		Kriging kriging(dataPoint, rasterContext);
+		_Kriging kriging(dataPoint, rasterContext);
 
 		kriging.Initialize();
 
@@ -1675,7 +1813,7 @@ bool KrigeZoneAData()
 
 		// kriging.SimpleKrige(Kriging::Spherical, 0.0, kriging.GetEstimatedSill(), 4000);
 
-		kriging.OrdinaryKrige(Kriging::Spherical, 0.0, kriging.GetEstimatedSill(), 4000, 16, 16, 0);
+		kriging.OrdinaryKrige(_Kriging::Spherical, 0.0, kriging.GetEstimatedSill(), 4000, 16, 16, 0);
 
 		/*
 		std::cout << "Distance" << ", " << "Semivariance" << ", " << "Counts" << ", " <<  "Linear Variogram" << std::endl;
@@ -1778,9 +1916,9 @@ void KrigeLargeSoilSampleSet()
 
 	if (result)
 	{
-		RasterContext rasterContext;
+		_RasterContext rasterContext;
 
-		Kriging kriging(dataPointCa, rasterContext);
+		_Kriging kriging(dataPointCa, rasterContext);
 
 		kriging.Initialize();
 
@@ -1805,5 +1943,347 @@ void KrigeLargeSoilSampleSet()
 	return;
 }
 
+
+KrigingAlgo::RasterContext::RasterContext(double xOffsetSource, double yOffsetSource,
+	double xScaleSource, double yScaleSource,
+	unsigned int widthSource, unsigned int heightSource, bool yFlippedSource) {
+	instance = new _RasterContext(xOffsetSource, yOffsetSource, xScaleSource, yScaleSource, widthSource, heightSource, yFlippedSource);
+
+}
+
+KrigingAlgo::RasterContext::~RasterContext() {
+	if (instance) {
+		_RasterContext* ptr = static_cast<_RasterContext*> (instance);
+		delete ptr;
+	}
+}
+
+KrigingAlgo::Kriging::Kriging(array<double>^ x, array<double>^ y, array<double>^ z, RasterContext^ rasterContext)
+{
+	if (x->Length == y->Length &&
+		x->Length == z->Length &&
+		y->Length == z->Length) {
+		std::vector<DataPoint> dataPoint;
+		for (int i = 0; i < x->Length; i++)
+		{
+			dataPoint.push_back(DataPoint(x[i], y[i], z[i]));
+		}
+		_RasterContext* ptr = static_cast<_RasterContext*>(rasterContext->instance);
+		instance = new _Kriging(dataPoint, *ptr);
+	}
+	else {
+		throw gcnew System::Exception("xyz数组长度不一致");
+	}
+}
+
+KrigingAlgo::Kriging::~Kriging()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		delete ptr;
+	}
+}
+
+void KrigingAlgo::Kriging::Initialize()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		ptr->Initialize();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+void KrigingAlgo::Kriging::CalculateExperimentalVariogram(double lag, double lagTolerance)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		ptr->CalculateExperimentalVariogram(lag, lagTolerance);
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::CalculateLinearModel()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->CalculateLinearModel();
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::CalculateLinearModelWithoutIntercept(double nugget)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->CalculateLinearModelWithoutIntercept(nugget);
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::CalculateSphericalModel(double nugget, double sill, double range)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->CalculateSphericalModel(nugget, sill, range);
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::CalculateExponentialModel(double nugget, double sill, double range)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->CalculateExponentialModel(nugget, sill, range);
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::CalculateGaussianModel(double nugget, double sill, double range)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->CalculateGaussianModel(nugget, sill, range);
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+double KrigingAlgo::Kriging::GetEstimatedNugget()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		return ptr->GetEstimatedNugget();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+double KrigingAlgo::Kriging::GetEstimatedRange()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		return ptr->GetEstimatedRange();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+double KrigingAlgo::Kriging::GetEstimatedSill()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		return ptr->GetEstimatedSill();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+double KrigingAlgo::Kriging::GetDefaultLag()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		return ptr->GetDefaultLag();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+double KrigingAlgo::Kriging::GetDefaultLagTolerance()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		return ptr->GetDefaultLagTolerance();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::GetLagDistances()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->GetLagDistances();
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<double>^ KrigingAlgo::Kriging::GetLagSemivariances()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->GetLagSemivariances();
+		array<double>^ arr = gcnew array<double>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+array<unsigned int>^ KrigingAlgo::Kriging::GetLagCounts()
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		auto items = ptr->GetLagCounts();
+		array<unsigned int>^ arr = gcnew array<unsigned int>(items.size());
+		for (int i = 0; i < items.size(); i++)
+		{
+			arr[i] = items[i];
+		}
+		return arr;
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+void KrigingAlgo::Kriging::SimpleKrige(Model model, array<float>^ buffer, double nugget, double sill, double range)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		_Kriging::_Model m = _Kriging::_Model::Linear;
+		switch (model)
+		{
+		case KrigingAlgo::Kriging::Model::Linear:
+			m = _Kriging::_Model::Linear;
+			break;
+		case KrigingAlgo::Kriging::Model::LinearWithoutIntercept:
+			m = _Kriging::_Model::LinearWithoutIntercept;
+			break;
+		case KrigingAlgo::Kriging::Model::Spherical:
+			m = _Kriging::_Model::Spherical;
+			break;
+		case KrigingAlgo::Kriging::Model::Exponential:
+			m = _Kriging::_Model::Exponential;
+			break;
+		case KrigingAlgo::Kriging::Model::Gaussian:
+			m = _Kriging::_Model::Gaussian;
+			break;
+		default:
+			break;
+		}
+		GCHandle handle = GCHandle::Alloc(buffer, GCHandleType::Pinned);
+		IntPtr bufferPtr = handle.AddrOfPinnedObject();
+		
+		ptr->SimpleKrige(m, bufferPtr.ToPointer(), nugget, sill, range);
+		handle.Free();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
+
+void KrigingAlgo::Kriging::OrdinaryKrige(Model model, array<float>^ buffer, double nugget, double sill, double range, unsigned int minPoints, unsigned int maxPoints, double maxDistance)
+{
+	if (instance) {
+		_Kriging* ptr = static_cast<_Kriging*>(instance);
+		_Kriging::_Model m = _Kriging::_Model::Linear;
+		switch (model)
+		{
+		case KrigingAlgo::Kriging::Model::Linear:
+			m = _Kriging::_Model::Linear;
+			break;
+		case KrigingAlgo::Kriging::Model::LinearWithoutIntercept:
+			m = _Kriging::_Model::LinearWithoutIntercept;
+			break;
+		case KrigingAlgo::Kriging::Model::Spherical:
+			m = _Kriging::_Model::Spherical;
+			break;
+		case KrigingAlgo::Kriging::Model::Exponential:
+			m = _Kriging::_Model::Exponential;
+			break;
+		case KrigingAlgo::Kriging::Model::Gaussian:
+			m = _Kriging::_Model::Gaussian;
+			break;
+		default:
+			break;
+		}
+		GCHandle handle = GCHandle::Alloc(buffer, GCHandleType::Pinned);
+		IntPtr bufferPtr = handle.AddrOfPinnedObject();
+
+		ptr->OrdinaryKrige(m, bufferPtr.ToPointer(), nugget, sill, range, minPoints, maxPoints, maxDistance);
+		handle.Free();
+	}
+	else
+	{
+		throw gcnew System::NullReferenceException("克里金对象指针为空");
+	}
+}
 
 
