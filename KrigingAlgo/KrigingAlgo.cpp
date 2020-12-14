@@ -1103,7 +1103,7 @@ void _Kriging::OrdinaryKrige(_Model model, void* buf, double nugget, double sill
 
 			double estimatedZ = 0.0;
 
-			if (candidateDistanceMap.size() == minPoints)
+			if (candidateDistanceMap.size() >= minPoints)
 			{
 				dataPointCandidate.resize(candidateDistanceMap.size());
 
