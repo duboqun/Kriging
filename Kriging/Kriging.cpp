@@ -19,6 +19,9 @@
 #include <assert.h>
 #include <direct.h>
 
+#include<cstdlib>
+#include<ctime>
+
 // Various helper routines for debugging
 
 // Output a matrix
@@ -824,54 +827,39 @@ void _Kriging::SimpleKrige(_Model model, double nugget, double sill, double rang
 
 	// Find distances between all points and calculate covariograms
 
+	double calculateDistanceMapForPointTime = 0;
+
+	double choleskyDecompositionTime = 0;
+	double simpleKrigeForPointTime = 0;
+
+	clock_t temp = clock();
 	std::vector<std::vector<double>> distanceCovariogramMatrix = CalculateCovariogramMatrix(dataPoint, model, nugget, sill, range, false);
-
+	calculateDistanceMapForPointTime += ((double)(clock() - temp)) / CLOCKS_PER_SEC;
 	// Decompose the covariogram matrix 
-
+	temp = clock();
 	CholeskyDecomposition choleskyDecomposition(distanceCovariogramMatrix);
-
 	choleskyDecomposition.Decompose();
-
+	choleskyDecompositionTime+= ((double)(clock() - temp)) / CLOCKS_PER_SEC;
 	// Estimate mean and calculate residuals
-
+	temp = clock();
 	double estimatedMean = std::accumulate(dataPoint.begin(), dataPoint.end(), 0.0, [](double sum, const DataPoint& dataPoint) { return sum + dataPoint.value; }) / dataPoint.size();
-
 	std::vector<double> residuals(dataPoint.size());
-
 	std::transform(dataPoint.begin(), dataPoint.end(), residuals.begin(), [&](const DataPoint& current) { return current.value - estimatedMean; });
-
 	double estimatedZ = 0.0;
-
-	// For now, output to standard out to plot in Excel.  Later we will just assign the kriged estimate to the data grid.
-
-	// Y scale across row 1
-
-	for (unsigned int j = 0; j < rasterContext.height; j++)
-	{
-		std::cout << ", " << rasterContext.XYtoPoint(0, j).y;
-	}
-
-	std::cout << std::endl;
-
 	for (unsigned int i = 0; i < rasterContext.width; i++)
 	{
-		// X scale down column 1
-
-		std::cout << rasterContext.XYtoPoint(i, 0).x;
-
 		for (unsigned int j = 0; j < rasterContext.height; j++)
 		{
-			// The kriged estimate
 			//估计
 			Point point = rasterContext.XYtoPoint(i, j);
-
 			estimatedZ = SimpleKrigeForPoint(point.x, point.y, model, nugget, sill, range, choleskyDecomposition, residuals, estimatedMean);
-
-			std::cout << ", " << estimatedZ;
 		}
-
-		std::cout << std::endl;
 	}
+	simpleKrigeForPointTime+= ((double)(clock() - temp)) / CLOCKS_PER_SEC;
+
+	std::cout << "calculateDistanceMapForPointTime:" << calculateDistanceMapForPointTime << std::endl;
+	std::cout << "choleskyDecompositionTime:" << choleskyDecompositionTime << std::endl;
+	std::cout << "simpleKrigeForPointTime:" << simpleKrigeForPointTime << std::endl;
 
 	return;
 
@@ -879,6 +867,8 @@ void _Kriging::SimpleKrige(_Model model, double nugget, double sill, double rang
 }
 
 // Ordinary Kriging
+double initTime = 0;
+double loopTime = 0;
 
 void _Kriging::OrdinaryKrige(_Model model, double nugget, double sill, double range,
 	unsigned int minPoints, unsigned int maxPoints, double maxDistance)
@@ -929,7 +919,7 @@ void _Kriging::OrdinaryKrige(_Model model, double nugget, double sill, double ra
 
 	for (unsigned int j = 0; j < rasterContext.height; j++)
 	{
-		std::cout << ", " << rasterContext.XYtoPoint(0, j).y;
+		//std::cout << ", " << rasterContext.XYtoPoint(0, j).y;
 	}
 
 	std::cout << std::endl;
@@ -940,12 +930,19 @@ void _Kriging::OrdinaryKrige(_Model model, double nugget, double sill, double ra
 	{
 		maxDistance = std::numeric_limits<double>().max();
 	}
+	double calculateDistanceMapForPointTime = 0;
+
+	double calculateCovariogramMatrixTime = 0;
+	double luDecompositionTime = 0;
+	double ordinaryKrigeForPointTime = 0;
 
 	for (unsigned int i = 0; i < rasterContext.width; i++)
 	{
 		// X scale down column 1
+		if (i % 100 == 0)
+			std::cout << i << std::endl;
 
-		std::cout << rasterContext.XYtoPoint(i, 0).x;
+		//std::cout << rasterContext.XYtoPoint(i, 0).x;
 
 		for (unsigned int j = 0; j < rasterContext.height; j++)
 		{
@@ -954,8 +951,9 @@ void _Kriging::OrdinaryKrige(_Model model, double nugget, double sill, double ra
 			Point point = rasterContext.XYtoPoint(i, j);
 
 			// Find our candidate points.
-
+			clock_t temp = clock();
 			std::multimap<double, size_t> candidateDistanceMap = CalculateDistanceMapForPoint(point.x, point.y, maxPoints, maxDistance);
+			calculateDistanceMapForPointTime += ((double)(clock() - temp)) / CLOCKS_PER_SEC;
 
 			double estimatedZ = 0.0;
 
@@ -976,23 +974,34 @@ void _Kriging::OrdinaryKrige(_Model model, double nugget, double sill, double ra
 
 				// Find distances between all points and calculate covariograms
 
+				temp = clock();
 				std::vector<std::vector<double>> distanceCovariogramMatrix = CalculateCovariogramMatrix(dataPointCandidate, model, nugget, sill, range, true);
-
+				calculateCovariogramMatrixTime += ((double)(clock() - temp)) / CLOCKS_PER_SEC;
 				// Decompose the covariogram matrix.  Because of the Lagrange multiplier, this will not be a positive definite matrix and we will
 				// need to use LU decomposition.
-
+				temp = clock();
 				LUDecomposition luDecomposition(distanceCovariogramMatrix);
-
 				luDecomposition.Decompose();
+				luDecompositionTime += ((double)(clock() - temp)) / CLOCKS_PER_SEC;
 
+				temp = clock();
 				estimatedZ = OrdinaryKrigeForPoint(point.x, point.y, model, nugget, sill, range, luDecomposition, dataPointCandidate);
+				ordinaryKrigeForPointTime += ((double)(clock() - temp)) / CLOCKS_PER_SEC;
 			}
 
-			std::cout << ", " << estimatedZ;
+			//std::cout << ", " << estimatedZ;
 		}
 
-		std::cout << std::endl;
+
+		//std::cout << std::endl;
 	}
+
+	std::cout << "calculateDistanceMapForPointTime:" << calculateDistanceMapForPointTime << std::endl;
+	std::cout << "calculateCovariogramMatrixTime:" << calculateCovariogramMatrixTime << std::endl;
+	std::cout << "luDecompositionTime:" << luDecompositionTime << std::endl;
+	std::cout << "ordinaryKrigeForPointTime:" << ordinaryKrigeForPointTime << std::endl;
+	std::cout << "initTime:" << initTime << std::endl;
+	std::cout << "loopTime:" << loopTime << std::endl;
 
 	return;
 
@@ -1049,6 +1058,7 @@ std::multimap<double, size_t> _Kriging::CalculateDistanceMapForPoint(double poin
 
 	for (size_t i = 0; i < dataPoint.size(); i++)
 	{
+		//当前距离
 		currentDistance = std::sqrt(std::pow(dataPoint[i].x - pointX, 2.0) + std::pow(dataPoint[i].y - pointY, 2.0));
 
 		if (currentDistance <= maxDistance)
@@ -1151,11 +1161,18 @@ std::vector<std::vector<double>> _Kriging::CalculateVariogramMatrix(const std::v
 
 // Fill a matrix of covariograms over all point distances
 
+
+
+
+clock_t ccmTemp;
 std::vector<std::vector<double>> _Kriging::CalculateCovariogramMatrix(const std::vector<DataPoint>& dataPointCandidate,
 	_Model model, double nugget, double sill, double range, bool LagrangeMultiplier) const
 {
-	std::vector<std::vector<double>> distanceMatrix(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), std::vector<double>(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), LagrangeMultiplier ? 1.0 : 0.0));
-
+	ccmTemp = clock();
+	std::vector<std::vector<double>> distanceMatrix(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(),
+		std::vector<double>(LagrangeMultiplier ? dataPointCandidate.size() + 1 : dataPointCandidate.size(), LagrangeMultiplier ? 1.0 : 0.0));
+	initTime+= ((double)(clock() - ccmTemp)) / CLOCKS_PER_SEC;
+	ccmTemp = clock();
 	double distance = 0.0;
 	double covariogram = 0.0;
 
@@ -1178,7 +1195,7 @@ std::vector<std::vector<double>> _Kriging::CalculateCovariogramMatrix(const std:
 	{
 		distanceMatrix[dataPointCandidate.size()][dataPointCandidate.size()] = 0.0;
 	}
-
+	loopTime += ((double)(clock() - ccmTemp)) / CLOCKS_PER_SEC;
 	return distanceMatrix;
 }
 
@@ -1801,11 +1818,24 @@ void KrigeLargeSoilSampleSet()
 	return;
 }
 
-void KrigeSURFData() 
+void KrigeSURFData()
 {
+	/*
+	* calculateDistanceMapForPointTime:40.521
+calculateCovariogramMatrixTime:48.346
+luDecompositionTime:8.854
+ordinaryKrigeForPointTime:5.836
+Total time:106150ms
+	*/
+
+	/*
+	* calculateDistanceMapForPointTime:0.001
+choleskyDecompositionTime:0.001
+simpleKrigeForPointTime:83.405
+	*/
 	bool result = true;
 	std::vector<DataPoint> dataPoint;
-	std::ifstream dataFile("C:\\Users\\Danny\\Desktop\\气象数据\\surf_气温TEM_平均气温2018.csv", std::ifstream::in);
+	std::ifstream dataFile("C:\\Users\\Danny\\Desktop\\hum20150101.csv", std::ifstream::in);
 	if (dataFile.good())
 	{
 		result = true;
@@ -1844,20 +1874,26 @@ void KrigeSURFData()
 
 	if (result)
 	{
-		_RasterContext rasterContext(96.9983, 20.755, 0.0131, 0.0131, 720, 653, true);
+		clock_t start = clock();
+		_RasterContext rasterContext(97.5340881, 21.1394329, 0.005, 0.005, 1732, 1622, false);
 		_Kriging kriging(dataPoint, rasterContext);
 		kriging.Initialize();
 		double nugget = kriging.GetEstimatedNugget();
 		double sill = kriging.GetEstimatedSill();
 		double range = kriging.GetEstimatedRange();
+		kriging.SimpleKrige(_Kriging::_Model::Spherical, nugget, sill, range);
 		kriging.OrdinaryKrige(_Kriging::_Model::Spherical, nugget, sill, range, 12, 16, 0);
+		clock_t end = clock();
+		double endtime = (double)(end - start) / CLOCKS_PER_SEC;
+		std::cout << "Total time:" << endtime * 1000 << "ms" << std::endl;
+		system("pause");
 	}
 }
 int main()
 {
 	std::vector<std::vector<double>> y;
 
-	KrigeZoneAData();
+	//KrigeZoneAData();
 
 	KrigeSURFData();
 
