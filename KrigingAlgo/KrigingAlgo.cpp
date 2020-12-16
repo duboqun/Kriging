@@ -1947,6 +1947,12 @@ void KrigeLargeSoilSampleSet()
 KrigingAlgo::RasterContext::RasterContext(double xOffsetSource, double yOffsetSource,
 	double xScaleSource, double yScaleSource,
 	unsigned int widthSource, unsigned int heightSource, bool yFlippedSource) {
+	this->xOffsetSource = xOffsetSource;
+	this->yOffsetSource = yOffsetSource;
+	this->xScaleSource = xScaleSource;
+	this->yScaleSource = yScaleSource;
+	this->widthSource = (int)widthSource;
+	this->heightSource = (int)heightSource;
 	instance = new _RasterContext(xOffsetSource, yOffsetSource, xScaleSource, yScaleSource, widthSource, heightSource, yFlippedSource);
 
 }

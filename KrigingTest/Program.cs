@@ -32,7 +32,14 @@ namespace KrigingTest
 
             kriging.Initialize();
             float[] buffer = new float[200*160];
+            var timer = System.Diagnostics.Stopwatch.StartNew();
             kriging.OrdinaryKrige(Kriging.Model.Spherical, buffer, 0.0, kriging.GetEstimatedSill(), 4000, 16, 16, 0);
+            Console.WriteLine(timer.ElapsedMilliseconds);
+            timer.Restart();
+            Kriging2 kriging2 = new Kriging2(x.ToArray(), y.ToArray(), z.ToArray(), rasterContext);
+            kriging2.SimpleKrige(Kriging2.Model.Spherical, buffer, 0.0, kriging.GetEstimatedSill(), 4000);
+            Console.WriteLine(timer.ElapsedMilliseconds);
+            Console.ReadKey();
             Console.WriteLine("");
         }
     }
