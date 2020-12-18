@@ -2225,19 +2225,19 @@ void KrigingAlgo::Kriging::SimpleKrige(Model model, array<float>^ buffer, double
 		_Kriging::_Model m = _Kriging::_Model::Linear;
 		switch (model)
 		{
-		case KrigingAlgo::Kriging::Model::Linear:
+		case KrigingAlgo::Model::Linear:
 			m = _Kriging::_Model::Linear;
 			break;
-		case KrigingAlgo::Kriging::Model::LinearWithoutIntercept:
+		case KrigingAlgo::Model::LinearWithoutIntercept:
 			m = _Kriging::_Model::LinearWithoutIntercept;
 			break;
-		case KrigingAlgo::Kriging::Model::Spherical:
+		case KrigingAlgo::Model::Spherical:
 			m = _Kriging::_Model::Spherical;
 			break;
-		case KrigingAlgo::Kriging::Model::Exponential:
+		case KrigingAlgo::Model::Exponential:
 			m = _Kriging::_Model::Exponential;
 			break;
-		case KrigingAlgo::Kriging::Model::Gaussian:
+		case KrigingAlgo::Model::Gaussian:
 			m = _Kriging::_Model::Gaussian;
 			break;
 		default:
@@ -2262,19 +2262,19 @@ void KrigingAlgo::Kriging::OrdinaryKrige(Model model, array<float>^ buffer, doub
 		_Kriging::_Model m = _Kriging::_Model::Linear;
 		switch (model)
 		{
-		case KrigingAlgo::Kriging::Model::Linear:
+		case KrigingAlgo::Model::Linear:
 			m = _Kriging::_Model::Linear;
 			break;
-		case KrigingAlgo::Kriging::Model::LinearWithoutIntercept:
+		case KrigingAlgo::Model::LinearWithoutIntercept:
 			m = _Kriging::_Model::LinearWithoutIntercept;
 			break;
-		case KrigingAlgo::Kriging::Model::Spherical:
+		case KrigingAlgo::Model::Spherical:
 			m = _Kriging::_Model::Spherical;
 			break;
-		case KrigingAlgo::Kriging::Model::Exponential:
+		case KrigingAlgo::Model::Exponential:
 			m = _Kriging::_Model::Exponential;
 			break;
-		case KrigingAlgo::Kriging::Model::Gaussian:
+		case KrigingAlgo::Model::Gaussian:
 			m = _Kriging::_Model::Gaussian;
 			break;
 		default:

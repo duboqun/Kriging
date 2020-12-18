@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kriging", "Kriging\Kriging.vcxproj", "{992CCE77-D5E6-4441-8B34-3D7C8BC0930D}"
 EndProject
@@ -30,8 +30,8 @@ Global
 		{992CCE77-D5E6-4441-8B34-3D7C8BC0930D}.Release|x86.ActiveCfg = Release|Win32
 		{992CCE77-D5E6-4441-8B34-3D7C8BC0930D}.Release|x86.Build.0 = Release|Win32
 		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|x64.ActiveCfg = Debug|x64
-		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|x64.Build.0 = Debug|x64
+		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|x64.ActiveCfg = Release|x64
+		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|x64.Build.0 = Release|x64
 		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|x86.ActiveCfg = Debug|Win32
 		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Debug|x86.Build.0 = Debug|Win32
 		{89AA49D1-2BD4-4494-A82E-751FE9DDFCCC}.Release|Any CPU.ActiveCfg = Release|Win32

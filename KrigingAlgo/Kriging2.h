@@ -16,14 +16,6 @@ namespace KrigingAlgo {
 		int vecLength = 0;
 		RasterContext^ rasterContext;
 	public:
-		enum class Model
-		{
-			Linear,
-			LinearWithoutIntercept,
-			Spherical,
-			Exponential,
-			Gaussian
-		};
 
 		Kriging2(cli::array<double>^ xArray, cli::array<double>^ yArray, cli::array<double>^ zArray, RasterContext^ rasterContext);
 		~Kriging2();

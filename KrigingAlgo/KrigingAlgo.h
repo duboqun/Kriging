@@ -20,20 +20,21 @@ namespace KrigingAlgo {
 		double xScaleSource; double yScaleSource;
 		int widthSource; int heightSource;
 	};
+	public enum class Model
+	{
+		Linear,
+		LinearWithoutIntercept,
+		Spherical,
+		Exponential,
+		Gaussian
+	};
 
 	public ref class Kriging
 	{
 	private:
 		void* instance = nullptr;
 	public:
-		enum class Model
-		{
-			Linear,
-			LinearWithoutIntercept,
-			Spherical,
-			Exponential,
-			Gaussian
-		};
+
 
 		Kriging(cli::array<double>^ x, cli::array<double>^ y, cli::array<double>^ z, RasterContext^ rasterContext);
 		~Kriging();
